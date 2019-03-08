@@ -14,7 +14,7 @@
 
 (define (dec x) (- x 1))
 
-(define (sqrt x) (* x x))
+(define (square x) (* x x))
 
 ;; Constant
 (define epsilon 0.0001)
@@ -29,7 +29,7 @@
   (define last-frac (/ an-1 bn-1))
   
   (define (converged? current-frac)
-    (if (< (euclid-dist last-frac current-frac) epsilon) #t #f))
+    (< (euclid-dist last-frac current-frac) epsilon))
 
   ;; Helper for calculating A_n and B_n
   (define (gen-new s-1 s-2)
@@ -60,7 +60,7 @@
     (define (arctg-num-gen-x x n)
       (if (= n 1)
           x
-          (sqrt (* (dec n) 
+          (square (* (dec n) 
                   x))))
 
     (arctg-num-gen-x x n))
