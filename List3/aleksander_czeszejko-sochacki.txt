@@ -1,0 +1,60 @@
+# Aleksander Czeszejko-Sochacki
+#
+# Przyjmujemy poniżej, że "a" to jednoelementowa lista
+#
+# Teza 1
+T: (map f (append xs ys)) = (append (map f xs) (map f ys))
+D: Indukcja względem długości listy xs
+
+	0. Dla #xs = 0 (xs = null):
+	T0: (map f (append null ys)) = (append (map f null) (map f ys))
+
+	D0: L = {po 1 iteracji append} (map f ys)
+	    P = {po 1 iteracji map} (append null (map f ys)) = {po 1 iteracji append}
+		(map f ys) = P, Q.E.D.
+
+	Tk: (map f (append xs ys)) = (append (map f xs) (map f ys)) =>
+	    (map f (append (append a xs) ys)) = (append (map f (append a xs)) (map f ys))
+
+	Dk: (map f (append (append a xs) ys)) = {z łączności append} 
+	    (map f (append a (append xs ys))) = {po 1 iteracji map}
+	    (cons (f a) (map f (append xs ys))) = {cons zastępujemy przez append, (f a) przez (map f a)}(*)
+	    (append (map f a) (map f (append xs ys))) = {z założenia indukcyjnego}
+	    (append (map f a) (append (map f xs) (map f ys))) = {z łączności append}
+	    (append (append (map f a) (map f xs)) (map f ys)) = {z założenia indukcyjnego}
+	    (append (map f (append a xs)) (map f ys)) Q.E.D.
+
+	Na mocy zasady indukcji dla list, teza spełniona.
+
+# Teza 2
+T: (filter p? (append xs ys)) = (append (filter p? xs) (filter p? ys))
+D: Indukcja względem długości listy xs
+	
+	0. Dla #xs = 0 (xs = null):
+	T0: (filter p? (append null ys)) = (append (filter p? null) (filter ys null))
+
+	D0: L = {po 1 iteracji append} (filter p? ys)
+	    P = {po 1 iteracji filter} (append null (filter p? ys)) = {po 1 iteracji append}
+		(filter p? ys) = P, Q.E.D.
+
+	Tk: (filter p? (append xs ys)) = (append (filter p? xs) (filter p? ys)) =>
+	    (filter p? (append (append a xs) ys)) = (append (filter p? (append a xs)) (filter p? ys))
+
+	Dk: (filter p? (append (append a xs) ys)) = {z łączności append}
+	    (filter p? (append a (append xs ys))) = {2 przypadki}
+
+	    1. a spełnia p? = {po 1 iteracji filter}
+	    (cons a (filter p? (append xs ys))) = {cons zastępujemy przez append, a przez (filter p? a)}(*)
+	    (append (filter p? a) (append xs ys)) = {dalej jak w przypadku map}
+
+	    2. a nie spełnia p? = {po 1 iteracji filter}
+	    (filter p? (append xs ys)) = {z założenia indukcyjnego}
+	    (append (filter p? xs) (filter p? ys)) = (1)
+
+	    Mamy (filter p? (append a xs)) = {po jednej iteracji filter (a nie spełnia p)}
+	    (filter p? xs), stąd
+
+	    (1) = (append (filter p? (append a xs)) (filter p? ys)), Q.E.D.
+
+P.S. W miejscach oznaczonych (*) skorzystałem z alternatywnej postaci wyrażeń dla jednoelementowych list
+(można to sprawdzić bezpośrednio).
