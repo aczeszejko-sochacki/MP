@@ -21,7 +21,6 @@
 (struct closure      (xs b e))
 (struct app-expr     (f es)     #:transparent)
 (struct apply-expr   (f e)      #:transparent)
-(struct list-expr    (xs)       #:transparent)
 
 (define (expr? e)
   (match e
@@ -50,7 +49,6 @@
                              (andmap expr? es))]
     [(apply-expr f e)   (and (expr? f)
                              (expr? e))]
-    [(list-expr xs)     (andmap expr? xs)]
     [_                  false]))
 
 (struct val-symbol (s)   #:transparent)
@@ -66,9 +64,7 @@
       (and (closure? v)
            (list? closure-xs)
            (expr? closure-b)
-           (expr? closure-e))
-      (and (list? v)
-           (andmap expr? v))))
+           (expr? closure-e))))
 
 (define (lookup x xs)
   (cond
@@ -101,6 +97,13 @@
        (andmap (lambda (xs) (and (list? e)
                                  (= (length e) 2)
                                  (symbol? (first e)))))))
+
+(define (cons-expr-list->expr-list xs)
+  (match xs
+    [(cons-expr head tail) (cons head (cons-expr-list->expr-list tail))]
+    [(null-expr) null]
+    [_ (error "Illegal argument - not a list")]))
+      
 
 (define (eval e env)
   (match e
@@ -140,8 +143,8 @@
                                       )
                                  (error "Wrong number of arguments :/"))] 
                             [_ (error "Application: not a function :/")]))]
-    [(list-expr xs) xs]
-    [(apply-expr f e) (eval (app-expr f (eval e env)) env)]))
+    [(apply-expr f e) (let ([args (cons-expr-list->expr-list e)])
+                           (eval (app-expr f args) env))]))
 
 (define (run e)
   (eval e (env-empty)))
@@ -163,20 +166,18 @@
 (define e4 (apply-expr (lambda-expr '(x y z)
                                     (op '+ (variable 'x)
                                            (variable 'z)))
-                       (list-expr (list (const 1) (const 2) (const 3)))))
+                       (cons-expr (const 3)
+                                  (cons-expr (const 2)
+                                             (cons-expr (const 1) (null-expr))))))
 
 (define e5 (apply-expr (lambda-expr '()
                                     (const 10))
-                       (list-expr '())))
-
-(define e6 (apply-expr (lambda-expr '(x)
-                                    (cdr-expr (variable 'x)))
-                       (list-expr (list (cons-expr (const 1) (const 2))))))
+                       (null-expr)))
 
 (define tests
   (test-suite
     ""
-    (check-true (andmap expr? (list e1 e1 e3 e4 e5 e6))
+    (check-true (andmap expr? (list e1 e1 e3 e4 e5))
                 "Check if all the expressions with custom methods satisfies expr? pred")
 
     (check-true (match (run e1)
@@ -192,8 +193,6 @@
     (check-equal? (run e4) 4 "Test apply-expr when passed correct (3)
                              number of args to lambda-expr")
 
-    (check-equal? (run e5) 10 "Test apply-expr when no argument required")
-
-    (check-equal? (run e6) 2 "Test apply-expr requiring exactly one argument")))
+    (check-equal? (run e5) 10 "Test apply-expr when no argument required")))
 
 (run-tests tests)
